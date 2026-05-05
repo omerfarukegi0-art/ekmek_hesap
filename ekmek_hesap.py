@@ -3,23 +3,17 @@ import streamlit as st
 # 1. SAYFA VE MOBİL TASARIM AYARLARI
 st.set_page_config(page_title="Ekmek Satış Takip", page_icon="🍞", layout="centered")
 
-# Rakamların her türlü ekranda (karanlık/aydınlık) okunması için özel stil
+# Rakamların her türlü ekranda okunması için özel stil
 st.markdown("""
     <style>
-    /* Metrik değerini ve yazılarını siyah/koyu gri yaparak okunur kılar */
-    [data-testid="stMetricValue"], [data-testid="stMetricLabel"] {
-        color: #000000 !important;
-    }
-    /* Metrik kutusunun arka planını açık sarı/beyaz yapar */
+    [data-testid="stMetricValue"], [data-testid="stMetricLabel"] { color: #000000 !important; }
     [data-testid="stMetric"] {
         background-color: #ffffff !important;
         padding: 20px !important;
         border-radius: 15px !important;
         border: 2px solid #f0ad4e !important;
     }
-    /* Giriş kutularını büyütür */
     .stNumberInput input { font-size: 20px !important; }
-    /* Butonu dikkat çekici yapar */
     button { 
         height: 4em !important; 
         width: 100% !important; 
@@ -34,7 +28,7 @@ st.markdown("""
 def main():
     st.title("🍞 Günlük Satış Paneli")
     
-    # --- SABİT FİYATLAR VE VERİLER ---
+    # --- SABİT FİYATLAR ---
     EKMEK_FIYAT = 11.0
     SABIT_URUNLER = {
         "Çavdarlı Ekmek": 43.0, 
@@ -44,22 +38,22 @@ def main():
         "Kurabiye": 55.0
     }
 
-    # --- 1. BÖLÜM: ANA EKMEKLER ---
-    st.subheader("🥖 Kasa Hesabı (11 TL)")
+    # --- 1. BÖLÜM: TEMEL EKMEKLER (ADET ÜZERİNDEN) ---
+    st.subheader("🥖 Ekmek Adetleri (11 TL)")
     col1, col2 = st.columns(2)
     
     with col1:
-        st.warning("Normal (20'li)")
-        n_kasa = st.number_input("Gelen Kasa", min_value=0, step=1, key="n_kasa")
-        n_kalan = st.number_input("Kalan Adet", min_value=0, step=1, key="n_kalan")
-        n_satilan = (n_kasa * 20) - n_kalan
+        st.warning("Normal Ekmek")
+        n_gelen = st.number_input("Toplam Gelen (Adet)", min_value=0, step=1, key="n_g")
+        n_kalan = st.number_input("Kalan / İade (Adet)", min_value=0, step=1, key="n_k")
+        n_satilan = n_gelen - n_kalan
         n_kazanc = n_satilan * EKMEK_FIYAT
 
     with col2:
-        st.warning("Kepekli (25'li)")
-        k_kasa = st.number_input("Gelen Kasa ", min_value=0, step=1, key="k_kasa")
-        k_kalan = st.number_input("Kalan Adet ", min_value=0, step=1, key="k_kalan")
-        k_satilan = (k_kasa * 25) - k_kalan
+        st.warning("Kepekli Ekmek")
+        k_gelen = st.number_input("Toplam Gelen (Adet) ", min_value=0, step=1, key="k_g")
+        k_kalan = st.number_input("Kalan / İade (Adet) ", min_value=0, step=1, key="k_k")
+        k_satilan = k_gelen - k_kalan
         k_kazanc = k_satilan * EKMEK_FIYAT
 
     # --- 2. BÖLÜM: SABİT ÜRÜNLER ---
@@ -67,7 +61,6 @@ def main():
     st.subheader("🍪 Yan Ürünler")
     ekstra_toplam = 0.0
     
-    # Ürünleri daha şık bir liste halinde sunar
     for urun, fiyat in SABIT_URUNLER.items():
         adet = st.number_input(f"{urun} ({fiyat} TL)", min_value=0, step=1, key=urun)
         ekstra_toplam += (adet * fiyat)
@@ -76,21 +69,19 @@ def main():
     st.markdown("---")
     toplam_ciro = n_kazanc + k_kazanc + ekstra_toplam
     
-    # Rakamın görünmediği yer burasıydı, şimdi siyah yaptık
     st.metric(label="💰 GÜNLÜK TOPLAM CİRO", value=f"{toplam_ciro:,.2f} TL")
 
     if st.button("HESAPLA VE ÖZETİ GÖSTER"):
         st.balloons()
         st.success("✅ Hesaplama Başarıyla Tamamlandı!")
         
-        # Detaylı Özet Tablosu
         with st.expander("Detaylı Satış Özeti", expanded=True):
-            st.write(f"🔹 **Normal Ekmek:** {n_satilan} Adet | {n_kazanc:.2f} TL")
-            st.write(f"🔹 **Kepekli Ekmek:** {k_satilan} Adet | {k_kazanc:.2f} TL")
+            st.write(f"🔹 **Normal Ekmek:** {max(0, n_satilan)} Adet | {max(0, n_kazanc):.2f} TL")
+            st.write(f"🔹 **Kepekli Ekmek:** {max(0, k_satilan)} Adet | {max(0, k_kazanc):.2f} TL")
             if ekstra_toplam > 0:
                 st.write(f"🔹 **Diğer Ürünler:** {ekstra_toplam:.2f} TL")
             st.write("---")
-            st.write(f"🏆 **Genel Toplam: {toplam_ciro:.2f} TL**")
+            st.write(f"🏆 **Genel Toplam: {max(0, toplam_ciro):.2f} TL**")
 
 if __name__ == "__main__":
     main()
