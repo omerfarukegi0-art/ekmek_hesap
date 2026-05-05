@@ -3,7 +3,7 @@ import streamlit as st
 # 1. SAYFA VE MOBİL TASARIM AYARLARI
 st.set_page_config(page_title="Ekmek Satış Takip", page_icon="🍞", layout="centered")
 
-# Rakamların her türlü ekranda okunması için özel stil
+# Rakamların okunması için özel stil
 st.markdown("""
     <style>
     [data-testid="stMetricValue"], [data-testid="stMetricLabel"] { color: #000000 !important; }
@@ -38,27 +38,22 @@ def main():
         "Kurabiye": 55.0
     }
 
-    # --- 1. BÖLÜM: TEMEL EKMEKLER (ADET ÜZERİNDEN) ---
-    st.subheader("🥖 Ekmek Adetleri (11 TL)")
-    col1, col2 = st.columns(2)
+    # --- 1. BÖLÜM: BİRLEŞTİRİLMİŞ EKMEKLER (11 TL) ---
+    st.subheader("🥖 Ekmek Satışı (Normal + Kepekli)")
+    st.info("Normal ve kepekli ekmeklerin toplam sayısını giriniz.")
     
+    col1, col2 = st.columns(2)
     with col1:
-        st.warning("Normal Ekmek")
-        n_gelen = st.number_input("Toplam Gelen (Adet)", min_value=0, step=1, key="n_g")
-        n_kalan = st.number_input("Kalan / İade (Adet)", min_value=0, step=1, key="n_k")
-        n_satilan = n_gelen - n_kalan
-        n_kazanc = n_satilan * EKMEK_FIYAT
-
+        toplam_gelen = st.number_input("Toplam Gelen Ekmek", min_value=0, step=1)
     with col2:
-        st.warning("Kepekli Ekmek")
-        k_gelen = st.number_input("Toplam Gelen (Adet) ", min_value=0, step=1, key="k_g")
-        k_kalan = st.number_input("Kalan / İade (Adet) ", min_value=0, step=1, key="k_k")
-        k_satilan = k_gelen - k_kalan
-        k_kazanc = k_satilan * EKMEK_FIYAT
+        toplam_kalan = st.number_input("Toplam Kalan Ekmek", min_value=0, step=1)
+    
+    ekmek_satilan = toplam_gelen - toplam_kalan
+    ekmek_kazanc = ekmek_satilan * EKMEK_FIYAT
 
-    # --- 2. BÖLÜM: SABİT ÜRÜNLER ---
+    # --- 2. BÖLÜM: YAN ÜRÜNLER ---
     st.markdown("---")
-    st.subheader("🍪 Yan Ürünler")
+    st.subheader("🍪 Diğer Ürünler")
     ekstra_toplam = 0.0
     
     for urun, fiyat in SABIT_URUNLER.items():
@@ -67,7 +62,7 @@ def main():
 
     # --- 3. SONUÇ RAPORU ---
     st.markdown("---")
-    toplam_ciro = n_kazanc + k_kazanc + ekstra_toplam
+    toplam_ciro = ekmek_kazanc + ekstra_toplam
     
     st.metric(label="💰 GÜNLÜK TOPLAM CİRO", value=f"{toplam_ciro:,.2f} TL")
 
@@ -76,8 +71,8 @@ def main():
         st.success("✅ Hesaplama Başarıyla Tamamlandı!")
         
         with st.expander("Detaylı Satış Özeti", expanded=True):
-            st.write(f"🔹 **Normal Ekmek:** {max(0, n_satilan)} Adet | {max(0, n_kazanc):.2f} TL")
-            st.write(f"🔹 **Kepekli Ekmek:** {max(0, k_satilan)} Adet | {max(0, k_kazanc):.2f} TL")
+            st.write(f"🔹 **Satılan Ekmek (Toplam):** {max(0, ekmek_satilan)} Adet")
+            st.write(f"🔹 **Ekmek Cirosu:** {max(0, ekmek_kazanc):.2f} TL")
             if ekstra_toplam > 0:
                 st.write(f"🔹 **Diğer Ürünler:** {ekstra_toplam:.2f} TL")
             st.write("---")
